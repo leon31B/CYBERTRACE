@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CYBERTRACE — Security Authentication Portal</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body style="background: var(--bg-primary);">
+    <div class="auth-wrapper">
+        <div class="auth-card">
+            <div style="text-align: center; margin-bottom: 24px;">
+                <span class="logo-badge" style="font-size: 1.2rem; padding: 8px 14px; display: inline-block; margin-bottom: 12px;">CYBERTRACE</span>
+                <h1 style="font-size: 1.4rem;">Digital Forensics & SOC Lab</h1>
+                <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">Fictional Educational Case Management Portal</p>
+            </div>
+
+            <!-- Flash alerts -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">
+                            <span>{{ message }}</span>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <form method="POST" action="{{ url_for('login') }}">
+                <div class="form-group">
+                    <label class="form-label" for="username">Operator Username</label>
+                    <input type="text" id="username" name="username" class="form-control" placeholder="e.g. investigator" required autofocus>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="password">Passcode</label>
+                    <input type="password" id="password" name="password" class="form-control" placeholder="••••••••••••" required>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px;">
+                    Authenticate to Console
+                </button>
+            </form>
+
+            <div class="credentials-helper">
+                <div style="font-weight: 700; color: var(--accent-cyan); margin-bottom: 6px;">DEMONSTRATION CREDENTIALS</div>
+                <table>
+                    <thead>
+                        <tr style="text-align: left; color: var(--text-dim); font-size: 0.7rem;">
+                            <th>ROLE</th>
+                            <th>USER</th>
+                            <th>PASSWORD</th>
+                        </tr>
+                    </thead>
+                    <tbody style="font-family: var(--font-mono);">
+                        <tr>
+                            <td><span class="badge badge-critical">ADMIN</span></td>
+                            <td>admin</td>
+                            <td>admin123</td>
+                        </tr>
+                        <tr>
+                            <td><span class="badge badge-investigating">INVESTIGATOR</span></td>
+                            <td>investigator</td>
+                            <td>investigator123</td>
+                        </tr>
+                        <tr>
+                            <td><span class="badge badge-low">ANALYST</span></td>
+                            <td>analyst</td>
+                            <td>analyst123</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div style="font-size: 0.7rem; color: var(--text-dim); margin-top: 10px; border-top: 1px solid var(--border-color); padding-top: 6px;">
+                    * Strictly localhost test accounts. Passwords securely hashed with PBKDF2/scrypt in SQLite database.
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

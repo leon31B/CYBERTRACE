@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+
+{% block title %}Attack Surface Analysis — CYBERTRACE{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Attack Surface Analysis</h1>
+        <p class="page-subtitle">Mapping all entry points, untrusted input boundaries, and exposure vectors across CYBERTRACE</p>
+    </div>
+    <div>
+        <a href="{{ url_for('security_dashboard') }}" class="btn btn-secondary">&larr; Back to Security Lab</a>
+    </div>
+</div>
+
+<div class="card" style="margin-bottom: 24px;">
+    <div class="card-header">
+        <span class="card-title">📖 What is Attack Surface Analysis?</span>
+    </div>
+    <p style="font-size: 0.9rem; color: var(--text-main); line-height: 1.6;">
+        An <strong>Attack Surface</strong> represents the sum total of all distinct points where an unauthorized user or adversary can try to enter data to or extract data from an environment. In web security, analyzing the attack surface involves cataloging all HTTP endpoints, input parameters, session headers, and database interfaces to systematically identify where security boundaries must be enforced.
+    </p>
+</div>
+
+<!-- Visual Tree Map -->
+<div class="card" style="margin-bottom: 24px;">
+    <div class="card-header">
+        <span class="card-title">🌐 Visual Attack Surface Map</span>
+        <span class="badge badge-low">HTTP &amp; Application Boundary</span>
+    </div>
+    <div class="tree-container">
+CYBERTRACE Application Input Boundary
+│
+├── [1] Authentication &amp; Identity
+│   ├── Login Form (/login) ────────────► SQL Injection &amp; Brute Force Risk ──► [Mitigation: Parameterized query + Rate limiting]
+│   ├── Session Cookie (session) ───────► Session Tampering &amp; Hijacking ────► [Mitigation: Signed cookie + HttpOnly]
+│   └── Profile Update (/profile) ──────► CSRF &amp; Privilege Escalation ──────► [Mitigation: Synchronizer CSRF Token]
+│
+├── [2] Case Management Operations
+│   ├── Search Bar (/cases?q=) ─────────► SQL Injection (LIKE clause) ──────► [Mitigation: Parameterized LIKE %?%]
+│   ├── Investigation Notes ────────────► Stored &amp; Reflected XSS ───────────► [Mitigation: Jinja2 Contextual HTML Escaping]
+│   └── Evidence Registration ──────────► Arbitrary Input Injection ────────► [Mitigation: Input Validation + Parameterization]
+│
+├── [3] Administrative Subsystems
+│   ├── Admin Routes (/admin/*) ────────► Broken Access Control (Bypass) ───► [Mitigation: Server-side @role_required decorator]
+│   ├── Database Viewer (/database) ────► Sensitive Data Exposure ──────────► [Mitigation: Masked password hashes + RBAC]
+│   └── Raw Parameters (/cases/&lt;id&gt;) ───► Insecure Direct Object Ref (IDOR) ─► [Mitigation: Server-side existence verification]
+│
+└── [4] Diagnostic &amp; Error Handling
+    └── Unhandled Exceptions (500) ─────► Information Disclosure ───────────► [Mitigation: Generic 500 error page + Local console logs]
+    </div>
+</div>
+
+<!-- Component Breakdown Table -->
+<div class="card">
+    <div class="card-header">
+        <span class="card-title">📋 Attack Surface Component &amp; Protection Registry</span>
+    </div>
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Component</th>
+                    <th>Entry Point / Vector</th>
+                    <th>Potential Threat / Risk</th>
+                    <th>Active Protection Mechanism</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>User Authentication</strong></td>
+                    <td><code>POST /login</code> (username, password)</td>
+                    <td>Authentication bypass, SQL injection in query</td>
+                    <td>Parameterized SQL query + PBKDF2 password verification</td>
+                </tr>
+                <tr>
+                    <td><strong>Case Search Engine</strong></td>
+                    <td><code>GET /cases?q={input}</code></td>
+                    <td>SQL syntax hijacking via string concatenation</td>
+                    <td>SQLite parameter binding (<code>?</code> placeholders)</td>
+                </tr>
+                <tr>
+                    <td><strong>Investigation Notes</strong></td>
+                    <td><code>POST /cases/&lt;id&gt;/add_note</code></td>
+                    <td>Stored Cross-Site Scripting (XSS) in DOM</td>
+                    <td>Automatic Jinja2 HTML escaping on render</td>
+                </tr>
+                <tr>
+                    <td><strong>Profile Management</strong></td>
+                    <td><code>POST /profile</code></td>
+                    <td>Cross-Site Request Forgery (CSRF) state change</td>
+                    <td>Cryptographic CSRF token validation on POST</td>
+                </tr>
+                <tr>
+                    <td><strong>Admin Operations</strong></td>
+                    <td><code>GET /admin/*</code></td>
+                    <td>Horizontal &amp; vertical privilege escalation</td>
+                    <td>Strict server-side role-based access control (RBAC)</td>
+                </tr>
+                <tr>
+                    <td><strong>Database Viewer</strong></td>
+                    <td><code>GET /database</code></td>
+                    <td>Plaintext password &amp; secret leak</td>
+                    <td>Admin-only access + password column masked as [HASHED]</td>
+                </tr>
+                <tr>
+                    <td><strong>Error Subsystem</strong></td>
+                    <td>HTTP 403, 404, 500 status triggers</td>
+                    <td>Internal filesystem disclosure, stack trace leak</td>
+                    <td>Custom production-grade error templates without traces</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

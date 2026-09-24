@@ -1,0 +1,225 @@
+{% extends 'base.html' %}
+
+{% block title %}SQL Injection Lab — CYBERTRACE{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">SQL Injection (SQLi) Laboratory</h1>
+        <p class="page-subtitle">Demonstration of untrusted SQL construction vs. Parameterized Query Defense</p>
+    </div>
+    <div>
+        <a href="{{ url_for('security_dashboard') }}" class="btn btn-secondary">&larr; Back to Security Lab</a>
+    </div>
+</div>
+
+<!-- Educational Overview Structured for Viva & Demonstration -->
+<div class="card" style="margin-bottom: 24px;">
+    <div class="card-header">
+        <span class="card-title">📖 SQL Injection — Educational Briefing</span>
+        <span class="badge badge-critical">CWE-89 / OWASP A03:2021</span>
+    </div>
+    <div style="font-size: 0.88rem; line-height: 1.6; color: var(--text-main);">
+        <div style="margin-bottom: 10px;">
+            <strong style="color: var(--accent-cyan);">1. What is it?</strong>
+            <p style="margin-top: 2px; color: var(--text-muted);">
+                SQL Injection (SQLi) is a code-injection vulnerability where malicious SQL commands are inserted into data entry fields to manipulate database query execution.
+            </p>
+        </div>
+        <div style="margin-bottom: 10px;">
+            <strong style="color: var(--accent-amber);">2. Why does it happen? (Root Cause)</strong>
+            <p style="margin-top: 2px; color: var(--text-muted);">
+                It occurs when user input is concatenated directly into SQL command strings instead of being passed as separate data parameters.
+            </p>
+        </div>
+        <div style="margin-bottom: 10px;">
+            <strong style="color: #f87171;">3. Impact</strong>
+            <p style="margin-top: 2px; color: var(--text-muted);">
+                Unauthorized data dumping, authentication bypass, record alteration, or extraction of confidential case information.
+            </p>
+        </div>
+        <div>
+            <strong style="color: #34d399;">4. Prevention (Mitigation)</strong>
+            <p style="margin-top: 2px; color: var(--text-muted);">
+                Parameterized queries (prepared statements via SQLite <code>?</code> placeholders), which force the database engine to treat inputs strictly as literal values.
+            </p>
+        </div>
+    </div>
+    <div class="demo-banner" style="margin-top: 14px; margin-bottom: 0;">
+        <div class="demo-banner-title">🔒 STRICT SAFETY BOUNDARY NOTICE</div>
+        <div class="demo-banner-desc">
+            This demonstration runs <strong>strictly on localhost</strong> against the isolated sandbox table <code>demo_sqli_records</code>. It does not touch production user data or external targets.
+        </div>
+    </div>
+</div>
+
+<!-- Interactive Demonstration Grid -->
+<div class="comparison-grid">
+    <!-- 1. VULNERABLE DEMONSTRATION -->
+    <div class="lab-panel vulnerable">
+        <div class="lab-panel-title">
+            <span>⚠️</span> VULNERABLE DEMONSTRATION (UNSAFE STRING FORMATTING)
+        </div>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">
+            Simulates an insecure search query constructed using direct string interpolation (<code>f"SELECT ... '{input}'"</code>).
+        </p>
+
+        <form method="POST" action="{{ url_for('sqli_lab') }}">
+            <input type="hidden" name="mode" value="vulnerable">
+            <div class="form-group">
+                <label class="form-label">Search Record Code or Classification</label>
+                <input type="text" id="vuln_sqli_input" name="search_val" class="form-control" placeholder="e.g. REC-9001 or ' OR '1'='1" value="{{ input_val if mode == 'vulnerable' else '' }}" required>
+            </div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px;">
+                <button type="button" class="btn btn-secondary" style="font-size: 0.75rem; padding: 4px 8px;" data-target="vuln_sqli_input" data-payload="' OR '1'='1">
+                    Fill Payload: ' OR '1'='1
+                </button>
+                <button type="button" class="btn btn-secondary" style="font-size: 0.75rem; padding: 4px 8px;" data-target="vuln_sqli_input" data-payload="REC-9001' --">
+                    Fill Payload: REC-9001' --
+                </button>
+            </div>
+            <button type="submit" class="btn btn-danger" style="width: 100%;">
+                Execute Insecure Query
+            </button>
+        </form>
+
+        {% if mode == 'vulnerable' %}
+        <div style="margin-top: 20px;">
+            <div style="font-size: 0.8rem; font-weight: 700; color: #f87171; margin-bottom: 6px;">
+                Raw SQL Query Executed in SQLite:
+            </div>
+            <div class="code-box bad">{{ vulnerable_query }}</div>
+
+            {% if vulnerable_error %}
+            <div class="alert alert-danger" style="margin-top: 10px;">
+                <strong>SQL Syntax Error:</strong> {{ vulnerable_error }}
+            </div>
+            {% elif vulnerable_results is not none %}
+            <div style="font-size: 0.8rem; font-weight: 700; color: #fff; margin-bottom: 6px;">
+                Query Results Returned ({{ vulnerable_results|length }} Records):
+            </div>
+            <div class="table-responsive" style="max-height: 200px; overflow-y: auto;">
+                <table class="data-table" style="font-size: 0.75rem;">
+                    <thead>
+                        <tr>
+                            <th>Code</th>
+                            <th>Title</th>
+                            <th>Classification</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for r in vulnerable_results %}
+                        <tr>
+                            <td style="font-family: var(--font-mono); color: #f87171;">{{ r['record_id'] }}</td>
+                            <td>{{ r['title'] }}</td>
+                            <td><span class="badge badge-critical">{{ r['classification'] }}</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <p style="font-size: 0.78rem; color: #fca5a5; margin-top: 8px;">
+                ⚠️ <strong>Security Impact:</strong> By supplying <code>' OR '1'='1</code>, the boolean condition evaluates to TRUE for every row, leaking all confidential records!
+            </p>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- 2. SECURE IMPLEMENTATION -->
+    <div class="lab-panel secure">
+        <div class="lab-panel-title">
+            <span>🛡️</span> SECURE IMPLEMENTATION (PARAMETERIZED QUERIES)
+        </div>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">
+            Uses prepared statements with parameter binding (<code>?</code> placeholders). Input is treated strictly as literal data.
+        </p>
+
+        <form method="POST" action="{{ url_for('sqli_lab') }}">
+            <input type="hidden" name="mode" value="secure">
+            <div class="form-group">
+                <label class="form-label">Search Record Code or Classification</label>
+                <input type="text" id="sec_sqli_input" name="search_val" class="form-control" placeholder="e.g. REC-9001 or ' OR '1'='1" value="{{ input_val if mode == 'secure' else '' }}" required>
+            </div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px;">
+                <button type="button" class="btn btn-secondary" style="font-size: 0.75rem; padding: 4px 8px;" data-target="sec_sqli_input" data-payload="' OR '1'='1">
+                    Fill Attack Payload: ' OR '1'='1
+                </button>
+                <button type="button" class="btn btn-secondary" style="font-size: 0.75rem; padding: 4px 8px;" data-target="sec_sqli_input" data-payload="REC-9001">
+                    Fill Valid Code: REC-9001
+                </button>
+            </div>
+            <button type="submit" class="btn btn-success" style="width: 100%;">
+                Execute Secure Parameterized Query
+            </button>
+        </form>
+
+        {% if mode == 'secure' %}
+        <div style="margin-top: 20px;">
+            <div style="font-size: 0.8rem; font-weight: 700; color: #34d399; margin-bottom: 6px;">
+                Parameterized Statement &amp; Bound Values:
+            </div>
+            <div class="code-box good">
+SQL: {{ secure_query }}<br>
+BOUND VALUES: ('{{ input_val }}', '{{ input_val }}')
+            </div>
+
+            <div style="font-size: 0.8rem; font-weight: 700; color: #fff; margin-bottom: 6px;">
+                Query Results Returned ({{ secure_results|length }} Records):
+            </div>
+            {% if secure_results %}
+            <div class="table-responsive">
+                <table class="data-table" style="font-size: 0.75rem;">
+                    <thead>
+                        <tr>
+                            <th>Code</th>
+                            <th>Title</th>
+                            <th>Classification</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for r in secure_results %}
+                        <tr>
+                            <td style="font-family: var(--font-mono); color: #34d399;">{{ r['record_id'] }}</td>
+                            <td>{{ r['title'] }}</td>
+                            <td><span class="badge badge-low">{{ r['classification'] }}</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-success" style="margin-top: 10px;">
+                <strong>Attack Neutralized:</strong> The database searched for a record whose literal ID equals <code>{{ input_val }}</code>. Zero records matched. The payload cannot alter SQL grammar!
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Before / After Code Analysis -->
+<div class="card" style="margin-top: 24px;">
+    <div class="card-header">
+        <span class="card-title">🔍 Code-Level Before vs. After Comparison</span>
+    </div>
+    <div class="grid-2" style="margin-bottom: 0;">
+        <div>
+            <div style="font-size: 0.8rem; font-weight: 700; color: #f87171; margin-bottom: 6px;">❌ VULNERABLE: Direct String Formatting</div>
+            <pre class="code-box bad">
+# Flawed approach: user input breaks out of SQL string
+query = f"SELECT * FROM cases WHERE code = '{user_input}'"
+cursor.execute(query)  # Vulnerable to injection!
+            </pre>
+        </div>
+        <div>
+            <div style="font-size: 0.8rem; font-weight: 700; color: #34d399; margin-bottom: 6px;">✅ SECURE: Parameterized Prepared Statement</div>
+            <pre class="code-box good">
+# Secure approach: SQLite engine compiles query structure first
+query = "SELECT * FROM cases WHERE code = ?"
+cursor.execute(query, (user_input,))  # Fully safe!
+            </pre>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,164 @@
+{% extends 'base.html' %}
+
+{% block title %}Broken Access Control Lab — CYBERTRACE{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Broken Access Control &amp; RBAC Laboratory</h1>
+        <p class="page-subtitle">Demonstration of Client-Side UI Hiding Flaw vs. Server-Side Role Enforcement</p>
+    </div>
+    <div>
+        <a href="{{ url_for('security_dashboard') }}" class="btn btn-secondary">&larr; Back to Security Lab</a>
+    </div>
+</div>
+
+<!-- Educational Overview Structured for Viva & Demonstration -->
+<div class="card" style="margin-bottom: 24px;">
+    <div class="card-header">
+        <span class="card-title">📖 Broken Access Control — Educational Briefing</span>
+        <span class="badge badge-critical">CWE-284 / OWASP A01:2021 #1 Risk</span>
+    </div>
+    <div style="font-size: 0.88rem; line-height: 1.6; color: var(--text-main);">
+        <div style="margin-bottom: 10px;">
+            <strong style="color: var(--accent-cyan);">1. What is it?</strong>
+            <p style="margin-top: 2px; color: var(--text-muted);">
+                Broken Access Control occurs when users can access resources, files, or functions outside their designated permissions.
+            </p>
+        </div>
+        <div style="margin-bottom: 10px;">
+            <strong style="color: var(--accent-amber);">2. Why does it happen? (Root Cause)</strong>
+            <p style="margin-top: 2px; color: var(--text-muted);">
+                Relying on client-side "security through obscurity" (hiding buttons/links in HTML) instead of enforcing server-side authorization checks on every endpoint.
+            </p>
+        </div>
+        <div style="margin-bottom: 10px;">
+            <strong style="color: #f87171;">3. Impact</strong>
+            <p style="margin-top: 2px; color: var(--text-muted);">
+                Vertical privilege escalation (e.g. Analyst accessing executive files or Admin databases) and horizontal privilege escalation (accessing another user's private data).
+            </p>
+        </div>
+        <div>
+            <strong style="color: #34d399;">4. Prevention (Mitigation)</strong>
+            <p style="margin-top: 2px; color: var(--text-muted);">
+                Server-side Role-Based Access Control (RBAC decorators). Every route checks <code>session.get('role')</code> on the server and rejects unauthorized requests with HTTP 403 Forbidden.
+            </p>
+        </div>
+    </div>
+    <div class="demo-banner" style="margin-top: 14px; margin-bottom: 0;">
+        <div class="demo-banner-title">🔑 CURRENT OPERATOR IDENTITY &amp; ROLE CLEARANCE</div>
+        <div class="demo-banner-desc">
+            You are currently logged in as: <strong style="color: #fff;">{{ current_user.full_name }}</strong> (Username: <code>{{ current_user.username }}</code>) with Role: <span class="badge {% if current_user.role == 'ADMIN' %}badge-critical{% elif current_user.role == 'INVESTIGATOR' %}badge-investigating{% else %}badge-low{% endif %}">{{ current_user.role }}</span>.
+            {% if current_user.role != 'ADMIN' %}
+            You can test accessing restricted files below without administrative clearance.
+            {% else %}
+            You have full ADMIN clearance. To observe the 403 Forbidden response, log out and sign in as <code>analyst</code> (password: <code>analyst123</code>).
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Interactive Testing Grid -->
+<div class="comparison-grid">
+    <!-- 1. VULNERABLE DEMONSTRATION -->
+    <div class="lab-panel vulnerable">
+        <div class="lab-panel-title">
+            <span>❌</span> VULNERABLE ENDPOINT (MISSING SERVER-SIDE ROLE CHECK)
+        </div>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">
+            Endpoint: <code>/demo/access_control/unprotected_admin_file</code><br>
+            Developer only hid the button from analysts, but forgot to implement <code>@role_required(['ADMIN'])</code> on the route!
+        </p>
+
+        <button type="button" class="btn btn-danger btn-test-access" data-url="{{ url_for('demo_unprotected_admin_file') }}" data-output="vuln_access_output" style="width: 100%;">
+            Attempt Access (Unprotected Route)
+        </button>
+
+        <div id="vuln_access_output" style="margin-top: 14px; background: #000; border: 1px dashed #ef4444; border-radius: 6px; padding: 12px; min-height: 80px; font-size: 0.8rem; font-family: var(--font-mono);">
+            <span style="color: var(--text-dim);">Click button above to simulate direct URL access...</span>
+        </div>
+        <div style="font-size: 0.75rem; color: #fca5a5; margin-top: 8px;">
+            ⚠️ <strong>Security Failure:</strong> Lower-privileged users can read classified administration files because the server never verified their role.
+        </div>
+    </div>
+
+    <!-- 2. SECURE IMPLEMENTATION -->
+    <div class="lab-panel secure">
+        <div class="lab-panel-title">
+            <span>✅</span> SECURE ENDPOINT (SERVER-SIDE RBAC DECORATOR)
+        </div>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">
+            Endpoint: <code>/demo/access_control/protected_admin_file</code><br>
+            Enforces strict backend verification. If role is not <code>ADMIN</code>, the server immediately denies access with HTTP 403 Forbidden.
+        </p>
+
+        <button type="button" class="btn btn-success btn-test-access" data-url="{{ url_for('demo_protected_admin_file') }}" data-output="secure_access_output" style="width: 100%;">
+            Attempt Access (Protected Route)
+        </button>
+
+        <div id="secure_access_output" style="margin-top: 14px; background: #000; border: 1px dashed #10b981; border-radius: 6px; padding: 12px; min-height: 80px; font-size: 0.8rem; font-family: var(--font-mono);">
+            <span style="color: var(--text-dim);">Click button above to test server-side authorization enforcement...</span>
+        </div>
+        <div style="font-size: 0.75rem; color: #86efac; margin-top: 8px;">
+            🛡️ <strong>Mitigation Verified:</strong> Backend validates <code>session['role'] == 'ADMIN'</code> on every single request.
+        </div>
+    </div>
+</div>
+
+<!-- RBAC Hierarchy Matrix -->
+<div class="card" style="margin-top: 24px;">
+    <div class="card-header">
+        <span class="card-title">👥 Role-Based Access Control (RBAC) Permission Matrix</span>
+    </div>
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Application Section</th>
+                    <th>Required Clearance</th>
+                    <th>ANALYST</th>
+                    <th>INVESTIGATOR</th>
+                    <th>ADMIN</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>View Dashboard &amp; Search Cases</td>
+                    <td>Authenticated Session</td>
+                    <td><span class="badge badge-open">ALLOWED</span></td>
+                    <td><span class="badge badge-open">ALLOWED</span></td>
+                    <td><span class="badge badge-open">ALLOWED</span></td>
+                </tr>
+                <tr>
+                    <td>Append Investigation Notes</td>
+                    <td>Authenticated Session</td>
+                    <td><span class="badge badge-open">ALLOWED</span></td>
+                    <td><span class="badge badge-open">ALLOWED</span></td>
+                    <td><span class="badge badge-open">ALLOWED</span></td>
+                </tr>
+                <tr>
+                    <td>Create New Cases &amp; Register Evidence</td>
+                    <td>INVESTIGATOR or ADMIN</td>
+                    <td><span class="badge badge-critical">DENIED (403)</span></td>
+                    <td><span class="badge badge-open">ALLOWED</span></td>
+                    <td><span class="badge badge-open">ALLOWED</span></td>
+                </tr>
+                <tr>
+                    <td>Raw Database Inspector (<code>/database</code>)</td>
+                    <td>ADMIN ONLY</td>
+                    <td><span class="badge badge-critical">DENIED (403)</span></td>
+                    <td><span class="badge badge-critical">DENIED (403)</span></td>
+                    <td><span class="badge badge-open">ALLOWED</span></td>
+                </tr>
+                <tr>
+                    <td>User Account Management (<code>/admin/users</code>)</td>
+                    <td>ADMIN ONLY</td>
+                    <td><span class="badge badge-critical">DENIED (403)</span></td>
+                    <td><span class="badge badge-critical">DENIED (403)</span></td>
+                    <td><span class="badge badge-open">ALLOWED</span></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

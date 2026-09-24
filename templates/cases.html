@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+
+{% block title %}Investigation Cases — CYBERTRACE{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Digital Investigation Cases</h1>
+        <p class="page-subtitle">Track, filter, and inspect internal security incidents and forensics dossiers</p>
+    </div>
+    {% if current_user.role in ['ADMIN', 'INVESTIGATOR'] %}
+    <div>
+        <a href="{{ url_for('new_case') }}" class="btn btn-primary">
+            <span>+ Open New Case</span>
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Search & Filter Form -->
+<div class="card" style="margin-bottom: 20px;">
+    <form method="GET" action="{{ url_for('cases') }}" style="display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end;">
+        <div style="flex: 2; min-width: 200px;">
+            <label class="form-label">Search Query (Case #, Title, Keyword)</label>
+            <input type="text" name="q" class="form-control" placeholder="Search cases..." value="{{ search_query }}">
+        </div>
+        <div style="flex: 1; min-width: 150px;">
+            <label class="form-label">Filter Severity</label>
+            <select name="severity" class="form-control">
+                <option value="">All Severities</option>
+                <option value="CRITICAL" {% if severity_filter == 'CRITICAL' %}selected{% endif %}>CRITICAL</option>
+                <option value="HIGH" {% if severity_filter == 'HIGH' %}selected{% endif %}>HIGH</option>
+                <option value="MEDIUM" {% if severity_filter == 'MEDIUM' %}selected{% endif %}>MEDIUM</option>
+                <option value="LOW" {% if severity_filter == 'LOW' %}selected{% endif %}>LOW</option>
+            </select>
+        </div>
+        <div>
+            <button type="submit" class="btn btn-secondary">Apply Filter</button>
+            <a href="{{ url_for('cases') }}" class="btn btn-secondary" style="margin-left: 6px;">Reset</a>
+        </div>
+    </form>
+</div>
+
+<!-- Cases Table -->
+<div class="card">
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Case Identifier</th>
+                    <th>Incident Title</th>
+                    <th>Severity</th>
+                    <th>Status</th>
+                    <th>Lead Investigator</th>
+                    <th>Opened Timestamp</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if cases %}
+                    {% for c in cases %}
+                    <tr>
+                        <td style="font-family: var(--font-mono); font-weight: 700; color: var(--accent-cyan);">
+                            {{ c.case_number }}
+                        </td>
+                        <td style="font-weight: 500;">{{ c.title }}</td>
+                        <td>
+                            {% if c.severity == 'CRITICAL' %}
+                            <span class="badge badge-critical">CRITICAL</span>
+                            {% elif c.severity == 'HIGH' %}
+                            <span class="badge badge-high">HIGH</span>
+                            {% elif c.severity == 'MEDIUM' %}
+                            <span class="badge badge-medium">MEDIUM</span>
+                            {% else %}
+                            <span class="badge badge-low">LOW</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if c.status == 'OPEN' %}
+                            <span class="badge badge-open">OPEN</span>
+                            {% elif c.status == 'INVESTIGATING' %}
+                            <span class="badge badge-investigating">ACTIVE</span>
+                            {% else %}
+                            <span class="badge badge-closed">CLOSED</span>
+                            {% endif %}
+                        </td>
+                        <td style="font-size: 0.85rem; color: var(--text-muted);">
+                            {{ c.investigator_name or 'Unassigned' }}
+                        </td>
+                        <td style="font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-dim);">
+                            {{ c.created_at }}
+                        </td>
+                        <td>
+                            <a href="{{ url_for('case_detail', case_id=c.id) }}" class="btn btn-secondary" style="padding: 4px 10px; font-size: 0.78rem;">
+                                View Dossier &rarr;
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="7" style="text-align: center; color: var(--text-dim); padding: 30px;">
+                            No investigation cases found matching your search parameters.
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

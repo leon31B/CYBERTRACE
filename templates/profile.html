@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+
+{% block title %}User Profile — CYBERTRACE{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Operator Profile & Security Settings</h1>
+        <p class="page-subtitle">Manage operator attributes, department affiliation, and security credentials</p>
+    </div>
+</div>
+
+<div class="grid-2">
+    <!-- Profile Edit Form -->
+    <div class="card">
+        <div class="card-header">
+            <span class="card-title">👤 Account Information</span>
+            <span class="badge badge-open">CSRF PROTECTED</span>
+        </div>
+        <form method="POST" action="{{ url_for('profile') }}">
+            <!-- Synchronizer CSRF Token -->
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+            <div class="form-group">
+                <label class="form-label">Username (System Identifier)</label>
+                <input type="text" class="form-control" value="{{ user.username }}" disabled style="opacity: 0.7; cursor: not-allowed;">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Assigned Role Clearance</label>
+                <input type="text" class="form-control" value="{{ user.role }}" disabled style="opacity: 0.7; cursor: not-allowed;">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Full Name</label>
+                <input type="text" name="full_name" class="form-control" value="{{ user.full_name }}" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Email Address</label>
+                <input type="email" name="email" class="form-control" value="{{ user.email }}" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Department / Unit</label>
+                <input type="text" name="department" class="form-control" value="{{ user.department }}" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Change Password (Leave blank to keep current)</label>
+                <input type="password" name="new_password" class="form-control" placeholder="Enter new password to update hash">
+            </div>
+
+            <button type="submit" class="btn btn-primary">Save Profile Changes</button>
+        </form>
+    </div>
+
+    <!-- Security Meta Info Card -->
+    <div>
+        <div class="card" style="margin-bottom: 20px;">
+            <div class="card-header">
+                <span class="card-title">🛡️ Session & Authorization Telemetry</span>
+            </div>
+            <div style="font-size: 0.85rem; line-height: 1.8;">
+                <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding: 8px 0;">
+                    <span style="color: var(--text-dim);">Authentication Mode:</span>
+                    <strong style="color: var(--accent-emerald);">Flask Client Session (Signed)</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding: 8px 0;">
+                    <span style="color: var(--text-dim);">CSRF Protection:</span>
+                    <strong style="color: var(--accent-cyan);">Enabled (Synchronizer Token)</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding: 8px 0;">
+                    <span style="color: var(--text-dim);">Password Storage:</span>
+                    <strong style="color: var(--accent-emerald);">Werkzeug PBKDF2/scrypt</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding: 8px 0;">
+                    <span style="color: var(--text-dim);">Account Registered:</span>
+                    <span style="font-family: var(--font-mono); color: var(--text-muted);">{{ user.created_at }}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 8px 0;">
+                    <span style="color: var(--text-dim);">Client IP Binding:</span>
+                    <span style="font-family: var(--font-mono); color: var(--accent-cyan);">127.0.0.1</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">🧪 Try CSRF Demonstration</span>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 14px;">
+                Learn how Cross-Site Request Forgery exploits authenticated browser sessions without CSRF tokens.
+            </p>
+            <a href="{{ url_for('csrf_lab') }}" class="btn btn-secondary" style="font-size: 0.8rem;">
+                Open CSRF Lab &rarr;
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

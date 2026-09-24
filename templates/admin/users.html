@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block title %}User Management — CYBERTRACE Admin{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">User Account &amp; Access Clearance Control</h1>
+        <p class="page-subtitle">Manage operator accounts, clearance levels, and division assignments</p>
+    </div>
+    <div>
+        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">&larr; Back to Admin Center</a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Operator ID</th>
+                    <th>Username</th>
+                    <th>Full Name</th>
+                    <th>Role Clearance</th>
+                    <th>Department</th>
+                    <th>Contact Email</th>
+                    <th>Registration Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in users %}
+                <tr>
+                    <td style="font-family: var(--font-mono); color: var(--accent-cyan);">UID-00{{ u.id }}</td>
+                    <td style="font-family: var(--font-mono); font-weight: 600;">{{ u.username }}</td>
+                    <td>{{ u.full_name }}</td>
+                    <td>
+                        {% if u.role == 'ADMIN' %}
+                        <span class="badge badge-critical">ADMIN</span>
+                        {% elif u.role == 'INVESTIGATOR' %}
+                        <span class="badge badge-investigating">INVESTIGATOR</span>
+                        {% else %}
+                        <span class="badge badge-low">ANALYST</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ u.department }}</td>
+                    <td style="font-family: var(--font-mono); font-size: 0.8rem;">{{ u.email }}</td>
+                    <td style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-dim);">{{ u.created_at }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

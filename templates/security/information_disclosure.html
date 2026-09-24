@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+
+{% block title %}Information Disclosure Lab — CYBERTRACE{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Sensitive Information Disclosure Laboratory</h1>
+        <p class="page-subtitle">Demonstration of Verbose Debug Leaks vs. Sanitized Production Error Handling</p>
+    </div>
+    <div>
+        <a href="{{ url_for('security_dashboard') }}" class="btn btn-secondary">&larr; Back to Security Lab</a>
+    </div>
+</div>
+
+<!-- Educational Overview Structured for Viva & Demonstration -->
+<div class="card" style="margin-bottom: 24px;">
+    <div class="card-header">
+        <span class="card-title">📖 Sensitive Information Disclosure — Educational Briefing</span>
+        <span class="badge badge-medium">CWE-200 / OWASP A05:2021</span>
+    </div>
+    <div style="font-size: 0.88rem; line-height: 1.6; color: var(--text-main);">
+        <div style="margin-bottom: 10px;">
+            <strong style="color: var(--accent-cyan);">1. What is it?</strong>
+            <p style="margin-top: 2px; color: var(--text-muted);">
+                Sensitive Information Disclosure occurs when an application exposes technical metadata, internal filesystem paths, debug stack traces, or configuration keys to untrusted end users.
+            </p>
+        </div>
+        <div style="margin-bottom: 10px;">
+            <strong style="color: var(--accent-amber);">2. Why does it happen? (Root Cause)</strong>
+            <p style="margin-top: 2px; color: var(--text-muted);">
+                Leaving debug modes enabled in production, improper exception handling, or printing raw error tracebacks directly to the client browser.
+            </p>
+        </div>
+        <div style="margin-bottom: 10px;">
+            <strong style="color: #f87171;">3. Impact</strong>
+            <p style="margin-top: 2px; color: var(--text-muted);">
+                Adversaries gather precise intelligence about underlying server architecture, software versions, directory layouts, and database paths to plan targeted attacks.
+            </p>
+        </div>
+        <div>
+            <strong style="color: #34d399;">4. Prevention (Mitigation)</strong>
+            <p style="margin-top: 2px; color: var(--text-muted);">
+                Production-grade error handling (<code>@app.errorhandler(500)</code>) serving sanitized generic error templates, keeping detailed logs strictly on internal server logs, and masking credentials.
+            </p>
+        </div>
+    </div>
+    <div class="demo-banner" style="margin-top: 14px; margin-bottom: 0;">
+        <div class="demo-banner-title">🔒 FICTIONAL LABORATORY TELEMETRY NOTICE</div>
+        <div class="demo-banner-desc">
+            All variables, server paths, and mock API keys displayed in this demonstration are strictly simulated fictional laboratory values. No real host secrets or production credentials exist.
+        </div>
+    </div>
+</div>
+
+<!-- Comparison Panels -->
+<div class="comparison-grid">
+    <!-- 1. VULNERABLE DEMONSTRATION -->
+    <div class="lab-panel vulnerable">
+        <div class="lab-panel-title">
+            <span>❌</span> VULNERABLE BEHAVIOR: VERBOSE DEBUG EXCEPTION LEAK
+        </div>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">
+            Simulates what happens when a developer leaves <code>debug=True</code> in production or displays unhandled Python exceptions directly to the user.
+        </p>
+
+        <a href="{{ url_for('demo_leak') }}" class="btn btn-danger" style="width: 100%; margin-bottom: 14px;">
+            Trigger Verbose Debug Traceback &rarr;
+        </a>
+
+        {% if leak_data %}
+        <div style="background: #090d16; border: 1px solid #ef4444; border-radius: 6px; padding: 14px; font-family: var(--font-mono); font-size: 0.78rem;">
+            <div style="color: #f87171; font-weight: 700; margin-bottom: 6px;">[SIMULATED RAW TRACEBACK DUMP]</div>
+            <div style="color: #fca5a5;">{{ leak_data.EXPOSED_ERROR }}</div>
+            <div style="color: var(--text-dim); margin: 6px 0;">Host Platform: {{ leak_data.INTERNAL_OS }}</div>
+            <div style="color: var(--text-dim);">Python Core: {{ leak_data.INTERNAL_PYTHON_PATH }}</div>
+            <div style="color: #f59e0b; margin: 6px 0;">Leaked DB Path: {{ leak_data.INTERNAL_DB_FILE_PATH }}</div>
+            <div style="color: #ef4444;">Leaked Internal Config: {{ leak_data.DEMO_INTERNAL_PATH }}</div>
+            <div style="color: #ef4444;">Leaked Secret Key: {{ leak_data.DEMO_SECRET_KEY }}</div>
+            <div style="margin-top: 8px; color: #94a3b8;">
+                Call Stack:<br>
+                {% for f in leak_data.FRAME_STACK_TRACE %}
+                &nbsp;&nbsp;{{ f }}<br>
+                {% endfor %}
+            </div>
+        </div>
+        <p style="font-size: 0.75rem; color: #fca5a5; margin-top: 8px;">
+            ⚠️ <strong>Impact:</strong> The adversary learned internal server filesystem paths, database file locations, and simulated keys from the unhandled error.
+        </p>
+        {% else %}
+        <div style="color: var(--text-dim); font-size: 0.8rem; padding: 12px; background: rgba(0,0,0,0.2); border-radius: 4px;">
+            Click the red button above to trigger the simulated verbose traceback leak.
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- 2. SECURE IMPLEMENTATION -->
+    <div class="lab-panel secure">
+        <div class="lab-panel-title">
+            <span>✅</span> SECURE IMPLEMENTATION: PRODUCTION ERROR HANDLING
+        </div>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">
+            Standard defensive architecture: All unhandled exceptions are caught by Flask's <code>@app.errorhandler(500)</code>, logging stack traces to server logs while returning a generic, safe response to the user.
+        </p>
+
+        <!-- Simulated Production Error Screen Preview -->
+        <div style="background: #090d16; border: 1px solid #10b981; border-radius: 6px; padding: 20px; text-align: center;">
+            <div style="font-size: 2rem; margin-bottom: 6px;">🛡️</div>
+            <div style="font-size: 1rem; font-weight: 700; color: #fff;">Internal Incident Logged</div>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin: 8px 0;">
+                An unexpected condition was encountered. A security telemetry record has been forwarded to the SOC administrators.
+            </p>
+            <div style="background: rgba(16, 185, 129, 0.1); border: 1px dashed #10b981; border-radius: 4px; padding: 8px; font-family: var(--font-mono); font-size: 0.75rem; color: #34d399; display: inline-block;">
+                INCIDENT REFERENCE: CT-INC-99420-LOCAL
+            </div>
+        </div>
+
+        <div style="margin-top: 14px; font-size: 0.8rem; line-height: 1.6; color: var(--text-main);">
+            <div style="color: #34d399; font-weight: 600;">Defensive Measures Enforced:</div>
+            • <strong>No Stack Traces:</strong> End users never see Python file lines or internal exceptions.<br>
+            • <strong>No Hardcoded Secrets:</strong> Secret keys loaded from environment variables.<br>
+            • <strong>Masked Passwords:</strong> Even database viewers display hashes or masks.<br>
+            • <strong>Server Console Logging:</strong> Critical diagnostics routed to administrative logging streams.
+        </div>
+    </div>
+</div>
+
+<!-- Code comparison -->
+<div class="card" style="margin-top: 24px;">
+    <div class="card-header">
+        <span class="card-title">🔍 Code Comparison: Defensive Exception Handling</span>
+    </div>
+    <div class="grid-2" style="margin-bottom: 0;">
+        <div>
+            <div style="font-size: 0.8rem; font-weight: 700; color: #f87171; margin-bottom: 6px;">❌ VULNERABLE: Direct Exception Exposure</div>
+            <pre class="code-box bad">
+@app.route('/query')
+def query():
+    try:
+        do_database_operation()
+    except Exception as e:
+        # Exposes internal exception and paths to user!
+        return str(e), 500
+            </pre>
+        </div>
+        <div>
+            <div style="font-size: 0.8rem; font-weight: 700; color: #34d399; margin-bottom: 6px;">✅ SECURE: Centralized Error Handler</div>
+            <pre class="code-box good">
+@app.errorhandler(500)
+def internal_server_error(e):
+    # Logs full traceback internally on server console
+    logger.error("Unhandled error: %s", e, exc_info=True)
+    # User receives only a clean, sanitized template
+    return render_template('errors/500.html'), 500
+            </pre>
+        </div>
+    </div>
+</div>
+{% endblock %}

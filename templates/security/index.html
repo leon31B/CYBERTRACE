@@ -1,0 +1,179 @@
+{% extends 'base.html' %}
+
+{% block title %}Security Assessment Dashboard — CYBERTRACE{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Application Security Assessment & Threat Report</h1>
+        <p class="page-subtitle">Educational audit matrix evaluating web application vulnerabilities and defensive mitigations</p>
+    </div>
+    <div style="display: flex; gap: 10px;">
+        <a href="{{ url_for('attack_surface') }}" class="btn btn-secondary">🌐 Attack Surface Map</a>
+        <a href="{{ url_for('threat_model') }}" class="btn btn-secondary">📐 STRIDE Threat Model</a>
+    </div>
+</div>
+
+<!-- Assessment Status Banner -->
+<div class="demo-banner">
+    <div class="demo-banner-title">🛡️ SECURITY POSTURE: HARDENED WITH ISOLATED DEMONSTRATION LABS</div>
+    <div class="demo-banner-desc">
+        All primary application workflows enforce defensive best practices (parameterized queries, Jinja2 autoescaping, CSRF synchronizer tokens, server-side RBAC, and sanitized error handlers). Vulnerabilities are isolated into dedicated educational lab harnesses for safe classroom demonstration.
+    </div>
+</div>
+
+<!-- Vulnerability Cards Grid -->
+<div class="grid-2">
+    <!-- 1. SQL Injection Card -->
+    <div class="card">
+        <div class="card-header">
+            <span class="card-title">💉 SQL Injection (SQLi)</span>
+            <span class="badge badge-open">DEMONSTRATED &amp; MITIGATED</span>
+        </div>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">
+            Occurs when untrusted user input is directly concatenated into database query strings, allowing attackers to alter the SQL logic structure.
+        </p>
+        <div style="font-size: 0.8rem; line-height: 1.8; margin-bottom: 14px;">
+            <div><strong style="color: var(--text-dim);">Attack Surface:</strong> Search forms, query parameters, authentication filters</div>
+            <div><strong style="color: var(--text-dim);">Severity / Risk:</strong> <span class="badge badge-critical">CRITICAL</span> (Data exfiltration, auth bypass)</div>
+            <div><strong style="color: var(--text-dim);">Secure Defense:</strong> Parameterized queries (prepared statements via SQLite <code>?</code> placeholders)</div>
+        </div>
+        <a href="{{ url_for('sqli_lab') }}" class="btn btn-primary" style="font-size: 0.8rem; padding: 6px 14px;">
+            Open SQLi Lab &rarr;
+        </a>
+    </div>
+
+    <!-- 2. Cross-Site Scripting Card -->
+    <div class="card">
+        <div class="card-header">
+            <span class="card-title">⚡ Cross-Site Scripting (XSS)</span>
+            <span class="badge badge-open">DEMONSTRATED &amp; MITIGATED</span>
+        </div>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">
+            Occurs when malicious script tags or JavaScript payloads in user input are rendered raw into the HTML DOM without sanitization.
+        </p>
+        <div style="font-size: 0.8rem; line-height: 1.8; margin-bottom: 14px;">
+            <div><strong style="color: var(--text-dim);">Attack Surface:</strong> Investigation notes, user profile names, feedback fields</div>
+            <div><strong style="color: var(--text-dim);">Severity / Risk:</strong> <span class="badge badge-high">HIGH</span> (Session hijacking, defacement)</div>
+            <div><strong style="color: var(--text-dim);">Secure Defense:</strong> Contextual HTML entity escaping (Jinja2 default escaping)</div>
+        </div>
+        <a href="{{ url_for('xss_lab') }}" class="btn btn-primary" style="font-size: 0.8rem; padding: 6px 14px;">
+            Open XSS Lab &rarr;
+        </a>
+    </div>
+
+    <!-- 3. CSRF Card -->
+    <div class="card">
+        <div class="card-header">
+            <span class="card-title">🔄 Cross-Site Request Forgery (CSRF)</span>
+            <span class="badge badge-open">DEMONSTRATED &amp; MITIGATED</span>
+        </div>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">
+            Occurs when an external site tricks an authenticated browser into submitting unauthorized state-changing POST requests.
+        </p>
+        <div style="font-size: 0.8rem; line-height: 1.8; margin-bottom: 14px;">
+            <div><strong style="color: var(--text-dim);">Attack Surface:</strong> Profile updates, case note submissions, evidence logging</div>
+            <div><strong style="color: var(--text-dim);">Severity / Risk:</strong> <span class="badge badge-medium">MEDIUM</span> (Unauthorized configuration alterations)</div>
+            <div><strong style="color: var(--text-dim);">Secure Defense:</strong> Cryptographic Synchronizer Token Pattern verified on POST</div>
+        </div>
+        <a href="{{ url_for('csrf_lab') }}" class="btn btn-primary" style="font-size: 0.8rem; padding: 6px 14px;">
+            Open CSRF Lab &rarr;
+        </a>
+    </div>
+
+    <!-- 4. Broken Access Control Card -->
+    <div class="card">
+        <div class="card-header">
+            <span class="card-title">🔐 Broken Access Control (RBAC)</span>
+            <span class="badge badge-open">DEMONSTRATED &amp; MITIGATED</span>
+        </div>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">
+            Occurs when an application relies only on client-side UI hiding rather than enforcing authorization checks at the backend endpoint.
+        </p>
+        <div style="font-size: 0.8rem; line-height: 1.8; margin-bottom: 14px;">
+            <div><strong style="color: var(--text-dim);">Attack Surface:</strong> Admin endpoints, direct object URL parameters, API routes</div>
+            <div><strong style="color: var(--text-dim);">Severity / Risk:</strong> <span class="badge badge-critical">CRITICAL</span> (Privilege escalation, unauthorized admin access)</div>
+            <div><strong style="color: var(--text-dim);">Secure Defense:</strong> Server-side role verification decorator rejecting with HTTP 403</div>
+        </div>
+        <a href="{{ url_for('access_control_lab') }}" class="btn btn-primary" style="font-size: 0.8rem; padding: 6px 14px;">
+            Open Access Control Lab &rarr;
+        </a>
+    </div>
+
+    <!-- 5. Sensitive Information Disclosure Card -->
+    <div class="card" style="grid-column: 1 / -1;">
+        <div class="card-header">
+            <span class="card-title">📄 Sensitive Information Disclosure</span>
+            <span class="badge badge-open">DEMONSTRATED &amp; MITIGATED</span>
+        </div>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">
+            Occurs when applications leak internal filesystem paths, database file locations, API secrets, or raw Python stack traces to untrusted users.
+        </p>
+        <div style="font-size: 0.8rem; line-height: 1.8; margin-bottom: 14px;">
+            <div><strong style="color: var(--text-dim);">Attack Surface:</strong> 500 internal error pages, unhandled exceptions, verbose debug modes</div>
+            <div><strong style="color: var(--text-dim);">Severity / Risk:</strong> <span class="badge badge-medium">MEDIUM</span> (Reconnaissance aid for targeted exploitation)</div>
+            <div><strong style="color: var(--text-dim);">Secure Defense:</strong> Custom production error handlers, server-only logging, credential redaction</div>
+        </div>
+        <a href="{{ url_for('information_disclosure_lab') }}" class="btn btn-primary" style="font-size: 0.8rem; padding: 6px 14px;">
+            Open Information Disclosure Lab &rarr;
+        </a>
+    </div>
+</div>
+
+<!-- Comprehensive Summary Table -->
+<div class="card">
+    <div class="card-header">
+        <span class="card-title">📊 Security Fix &amp; Mitigation Master Matrix</span>
+    </div>
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Vulnerability</th>
+                    <th>Root Cause</th>
+                    <th>Attack Vector</th>
+                    <th>Mitigation Technique</th>
+                    <th>Verification Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td style="font-weight: 600; color: #fff;">SQL Injection</td>
+                    <td>Unsafe string concatenation in SQL queries</td>
+                    <td>Input forms &amp; query parameters</td>
+                    <td>Parameterized queries (SQLite <code>?</code> placeholders)</td>
+                    <td><span class="badge badge-open">MITIGATED</span></td>
+                </tr>
+                <tr>
+                    <td style="font-weight: 600; color: #fff;">Cross-Site Scripting (XSS)</td>
+                    <td>Unescaped rendering of user data in HTML</td>
+                    <td>Stored notes &amp; reflected input</td>
+                    <td>Output entity escaping via Jinja2 default filters</td>
+                    <td><span class="badge badge-open">MITIGATED</span></td>
+                </tr>
+                <tr>
+                    <td style="font-weight: 600; color: #fff;">CSRF</td>
+                    <td>Missing origin/token validation on state change</td>
+                    <td>Cross-origin POST requests</td>
+                    <td>Cryptographic Synchronizer CSRF tokens</td>
+                    <td><span class="badge badge-open">MITIGATED</span></td>
+                </tr>
+                <tr>
+                    <td style="font-weight: 600; color: #fff;">Broken Access Control</td>
+                    <td>Missing server-side role validation</td>
+                    <td>Direct endpoint navigation</td>
+                    <td>Strict RBAC decorators &amp; HTTP 403 enforcement</td>
+                    <td><span class="badge badge-open">MITIGATED</span></td>
+                </tr>
+                <tr>
+                    <td style="font-weight: 600; color: #fff;">Information Disclosure</td>
+                    <td>Verbose debug output &amp; unhandled tracebacks</td>
+                    <td>Exception triggers &amp; invalid routes</td>
+                    <td>Sanitized error handlers &amp; server console logs</td>
+                    <td><span class="badge badge-open">MITIGATED</span></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block title %}Evidence Locker — CYBERTRACE{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Forensic Evidence Locker</h1>
+        <p class="page-subtitle">Centralized chain-of-custody archive for digital artifacts, packet dumps, and disk images</p>
+    </div>
+    {% if current_user.role in ['ADMIN', 'INVESTIGATOR'] %}
+    <div>
+        <a href="{{ url_for('new_evidence') }}" class="btn btn-primary">
+            <span>+ Register Evidence</span>
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Evidence Code</th>
+                    <th>Linked Case</th>
+                    <th>Artifact Description</th>
+                    <th>Artifact Classification</th>
+                    <th>Custody Status</th>
+                    <th>Secured By</th>
+                    <th>Ingestion Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for e in evidence_items %}
+                <tr>
+                    <td style="font-family: var(--font-mono); font-weight: 700; color: var(--accent-cyan);">
+                        {{ e.evidence_code }}
+                    </td>
+                    <td style="font-family: var(--font-mono); font-weight: 600;">
+                        <a href="{{ url_for('case_detail', case_id=e.case_id) }}">{{ e.case_number }}</a>
+                    </td>
+                    <td>{{ e.description }}</td>
+                    <td>
+                        <span class="badge badge-medium">{{ e.evidence_type }}</span>
+                    </td>
+                    <td>
+                        <span class="badge badge-open">{{ e.status }}</span>
+                    </td>
+                    <td style="color: var(--text-muted); font-size: 0.85rem;">
+                        {{ e.collected_by }}
+                    </td>
+                    <td style="font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-dim);">
+                        {{ e.created_at }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

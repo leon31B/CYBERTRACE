@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+
+{% block title %}CSRF Laboratory — CYBERTRACE{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Cross-Site Request Forgery (CSRF) Laboratory</h1>
+        <p class="page-subtitle">Demonstration of missing request verification vs. Cryptographic Synchronizer Tokens</p>
+    </div>
+    <div>
+        <a href="{{ url_for('security_dashboard') }}" class="btn btn-secondary">&larr; Back to Security Lab</a>
+    </div>
+</div>
+
+<!-- Educational Overview Structured for Viva & Demonstration -->
+<div class="card" style="margin-bottom: 24px;">
+    <div class="card-header">
+        <span class="card-title">📖 Cross-Site Request Forgery (CSRF) — Educational Briefing</span>
+        <span class="badge badge-medium">CWE-352 / OWASP A01:2021</span>
+    </div>
+    <div style="font-size: 0.88rem; line-height: 1.6; color: var(--text-main);">
+        <div style="margin-bottom: 10px;">
+            <strong style="color: var(--accent-cyan);">1. What is it?</strong>
+            <p style="margin-top: 2px; color: var(--text-muted);">
+                CSRF is an attack that tricks an authenticated victim's browser into sending an unwanted state-changing HTTP request to a vulnerable application.
+            </p>
+        </div>
+        <div style="margin-bottom: 10px;">
+            <strong style="color: var(--accent-amber);">2. Why does it happen? (Root Cause)</strong>
+            <p style="margin-top: 2px; color: var(--text-muted);">
+                Web browsers automatically include session cookies with every request sent to a domain. Without an origin or token check, the server cannot tell if the request was submitted intentionally by the user or forged by an external site.
+            </p>
+        </div>
+        <div style="margin-bottom: 10px;">
+            <strong style="color: #f87171;">3. Impact</strong>
+            <p style="margin-top: 2px; color: var(--text-muted);">
+                Unauthorized profile updates, email changes, password resets, or forensic data modifications performed without operator knowledge.
+            </p>
+        </div>
+        <div>
+            <strong style="color: #34d399;">4. Prevention (Mitigation)</strong>
+            <p style="margin-top: 2px; color: var(--text-muted);">
+                Cryptographic Synchronizer Tokens (CSRF tokens). A random, unpredictable token stored in the server session is verified on every state-changing POST request.
+            </p>
+        </div>
+    </div>
+    <div class="demo-banner" style="margin-top: 14px; margin-bottom: 0;">
+        <div class="demo-banner-title">🔒 LOCALHOST SIMULATION</div>
+        <div class="demo-banner-desc">
+            No external phishing pages or foreign servers are needed. This laboratory provides an interactive simulated third-party exploit button directly on this page to trigger cross-origin POST simulations against your local endpoints.
+        </div>
+    </div>
+</div>
+
+<!-- Current User Department Status Banner -->
+<div class="card" style="margin-bottom: 24px; border-left: 4px solid var(--accent-cyan);">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <div style="font-size: 0.8rem; color: var(--text-dim); text-transform: uppercase;">Current Authenticated State Target</div>
+            <div style="font-size: 1.1rem; font-weight: 700; color: #fff;">
+                Operator: <span style="color: var(--accent-cyan);">{{ user.full_name }}</span> | Current Department: <span style="color: var(--accent-emerald);">{{ user.department }}</span>
+            </div>
+        </div>
+        <div>
+            <span class="badge badge-low">Session Cookie Active</span>
+        </div>
+    </div>
+</div>
+
+<!-- Interactive Comparison Grid -->
+<div class="comparison-grid">
+    <!-- 1. VULNERABLE DEMONSTRATION -->
+    <div class="lab-panel vulnerable">
+        <div class="lab-panel-title">
+            <span>❌</span> LOCAL VULNERABLE DEMONSTRATION (NO CSRF TOKEN)
+        </div>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 14px;">
+            Target Endpoint: <code>POST /demo/csrf/vulnerable_update</code><br>
+            This route accepts state changes purely based on the automatic session cookie without validating a unique anti-forgery token.
+        </p>
+
+        <!-- Simulated Attacker Form -->
+        <div style="background: rgba(0,0,0,0.3); border: 1px dashed #ef4444; border-radius: 6px; padding: 14px; margin-bottom: 14px;">
+            <div style="font-size: 0.8rem; font-weight: 700; color: #f87171; margin-bottom: 6px;">
+                🏴‍☠️ Simulated External Forged Request
+            </div>
+            <p style="font-size: 0.78rem; color: var(--text-dim); margin-bottom: 10px;">
+                Simulates clicking a malicious link on an external forum: a hidden form automatically posts to your local CYBERTRACE session.
+            </p>
+            <form method="POST" action="{{ url_for('demo_csrf_vulnerable') }}">
+                <input type="hidden" name="department" value="⚠️ COMPROMISED_BRANCH_VIA_CSRF">
+                <button type="submit" class="btn btn-danger" style="width: 100%; font-size: 0.8rem;">
+                    Trigger Forged POST (No CSRF Token)
+                </button>
+            </form>
+        </div>
+
+        <div style="font-size: 0.78rem; color: #fca5a5;">
+            ⚠️ <strong>Result:</strong> State change succeeds! The operator's department changes without their informed authorization.
+        </div>
+    </div>
+
+    <!-- 2. SECURE IMPLEMENTATION -->
+    <div class="lab-panel secure">
+        <div class="lab-panel-title">
+            <span>✅</span> SECURE IMPLEMENTATION (SYNCHRONIZER TOKEN DEFENSE)
+        </div>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 14px;">
+            Target Endpoint: <code>POST /demo/csrf/secure_update</code><br>
+            Requires every state-changing request to supply the cryptographically unpredictable token generated in the user's session.
+        </p>
+
+        <!-- Test Without Token (Should Fail) -->
+        <div style="background: rgba(0,0,0,0.3); border: 1px dashed #f59e0b; border-radius: 6px; padding: 14px; margin-bottom: 14px;">
+            <div style="font-size: 0.8rem; font-weight: 700; color: #fbbf24; margin-bottom: 6px;">
+                Test A: Forged Request (Missing Token)
+            </div>
+            <form method="POST" action="{{ url_for('demo_csrf_secure') }}">
+                <input type="hidden" name="department" value="UNAUTHORIZED_DEPARTMENT_NAME">
+                <button type="submit" class="btn btn-secondary" style="width: 100%; font-size: 0.8rem;">
+                    Submit Without Token (Blocked &rarr;)
+                </button>
+            </form>
+        </div>
+
+        <!-- Test With Valid Token (Should Succeed) -->
+        <div style="background: rgba(0,0,0,0.3); border: 1px dashed #10b981; border-radius: 6px; padding: 14px;">
+            <div style="font-size: 0.8rem; font-weight: 700; color: #34d399; margin-bottom: 6px;">
+                Test B: Legitimate Submission (Valid Token)
+            </div>
+            <div style="font-size: 0.75rem; font-family: var(--font-mono); color: var(--accent-cyan); margin-bottom: 8px;">
+                Active Token: {{ csrf_token[:12] }}...
+            </div>
+            <form method="POST" action="{{ url_for('demo_csrf_secure') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <input type="hidden" name="department" value="Cyber Threat Intelligence Unit">
+                <button type="submit" class="btn btn-success" style="width: 100%; font-size: 0.8rem;">
+                    Submit With Valid Token (Accepted &rarr;)
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Implementation Code Explanation -->
+<div class="card" style="margin-top: 24px;">
+    <div class="card-header">
+        <span class="card-title">🔍 Defense Mechanism: How Synchronizer Tokens Stop CSRF</span>
+    </div>
+    <p style="font-size: 0.85rem; color: var(--text-main); line-height: 1.6; margin-bottom: 10px;">
+        An attacker site can force a browser to send requests to an internal web application with cookies, but because of the <strong>Same-Origin Policy (SOP)</strong>, the attacker site cannot read the HTML or JavaScript of the target domain. Therefore, the attacker cannot steal or guess the unique CSRF token stored inside the user's session:
+    </p>
+    <pre class="code-box good">
+# Server-side verification logic in app.py:
+submitted_token = request.form.get('csrf_token')
+session_token = session.get('csrf_token')
+
+if not submitted_token or submitted_token != session_token:
+    abort(400, "CSRF validation failed: State change rejected.")
+    </pre>
+</div>
+{% endblock %}

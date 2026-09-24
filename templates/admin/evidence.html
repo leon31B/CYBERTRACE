@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+
+{% block title %}Evidence Management — CYBERTRACE Admin{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Evidence Chain-of-Custody Administration</h1>
+        <p class="page-subtitle">Register new digital evidence artifacts or audit custody provenance</p>
+    </div>
+    <div>
+        <a href="{{ url_for('evidence') }}" class="btn btn-secondary">&larr; Evidence Locker</a>
+    </div>
+</div>
+
+{% if action == 'new' %}
+<!-- New Evidence Form -->
+<div class="card" style="max-width: 680px; margin: 0 auto;">
+    <div class="card-header">
+        <span class="card-title">🔬 Register New Evidence Item</span>
+    </div>
+    <form method="POST" action="{{ url_for('new_evidence') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+        <div class="form-group">
+            <label class="form-label">Link to Existing Case</label>
+            <select name="case_id" class="form-control" required>
+                {% for c in cases %}
+                <option value="{{ c.id }}">{{ c.case_number }} — {{ c.title }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Unique Evidence Identifier</label>
+            <input type="text" name="evidence_code" class="form-control" placeholder="e.g. EVD-RAM-005" required>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Evidence Artifact Description</label>
+            <textarea name="description" class="form-control" placeholder="Describe physical or digital artifact, acquisition hash, source machine..." required></textarea>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+            <div class="form-group">
+                <label class="form-label">Evidence Category</label>
+                <select name="evidence_type" class="form-control">
+                    <option value="DISK_IMAGE">DISK_IMAGE</option>
+                    <option value="MEMORY_DUMP">MEMORY_DUMP</option>
+                    <option value="NETWORK_PCAP">NETWORK_PCAP</option>
+                    <option value="LOG_ARCHIVE">LOG_ARCHIVE</option>
+                    <option value="EMAIL_HEADERS">EMAIL_HEADERS</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Custody Status</label>
+                <select name="status" class="form-control">
+                    <option value="SECURED" selected>SECURED</option>
+                    <option value="ANALYZING">ANALYZING</option>
+                    <option value="ARCHIVED">ARCHIVED</option>
+                </select>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px;">
+            Commit to Chain-of-Custody Archive
+        </button>
+    </form>
+</div>
+
+{% else %}
+<!-- Evidence Table -->
+<div class="card">
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Evidence Code</th>
+                    <th>Linked Case</th>
+                    <th>Description</th>
+                    <th>Classification</th>
+                    <th>Status</th>
+                    <th>Collected By</th>
+                    <th>Timestamp</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for e in evidence_items %}
+                <tr>
+                    <td style="font-family: var(--font-mono); font-weight: 700; color: var(--accent-cyan);">
+                        {{ e.evidence_code }}
+                    </td>
+                    <td style="font-family: var(--font-mono); font-weight: 600;">
+                        <a href="{{ url_for('case_detail', case_id=e.case_id) }}">{{ e.case_number }}</a>
+                    </td>
+                    <td>{{ e.description }}</td>
+                    <td><span class="badge badge-medium">{{ e.evidence_type }}</span></td>
+                    <td><span class="badge badge-open">{{ e.status }}</span></td>
+                    <td>{{ e.collected_by }}</td>
+                    <td style="font-family: var(--font-mono); font-size: 0.75rem;">{{ e.created_at }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

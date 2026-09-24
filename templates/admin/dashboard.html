@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Dashboard — CYBERTRACE{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Administration &amp; System Health Center</h1>
+        <p class="page-subtitle">Administrative oversight for user roles, forensics cases, and audit streams</p>
+    </div>
+    <div style="display: flex; gap: 8px;">
+        <a href="{{ url_for('admin_users') }}" class="btn btn-secondary">Manage Users</a>
+        <a href="{{ url_for('database_viewer') }}" class="btn btn-primary">Open DB Inspector</a>
+    </div>
+</div>
+
+<div class="grid-4">
+    <div class="stat-card">
+        <div class="stat-icon cyan">👥</div>
+        <div>
+            <div class="stat-value">{{ users_count }}</div>
+            <div class="stat-label">System Users</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon emerald">📁</div>
+        <div>
+            <div class="stat-value">{{ cases_count }}</div>
+            <div class="stat-label">Managed Cases</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon rose">🔬</div>
+        <div>
+            <div class="stat-value">{{ evidence_count }}</div>
+            <div class="stat-label">Evidence Pieces</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon amber">⚙️</div>
+        <div>
+            <div class="stat-value">LOCAL</div>
+            <div class="stat-label">Deployment State</div>
+        </div>
+    </div>
+</div>
+
+<!-- Admin Audit Trail Feed -->
+<div class="card">
+    <div class="card-header">
+        <span class="card-title">📜 System Audit &amp; Security Event Logs</span>
+        <span class="badge badge-open">Real-time Telemetry</span>
+    </div>
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Event ID</th>
+                    <th>Timestamp</th>
+                    <th>Operator</th>
+                    <th>Role</th>
+                    <th>Client IP</th>
+                    <th>Action Executed</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in audit_logs %}
+                <tr>
+                    <td style="font-family: var(--font-mono); color: var(--text-dim);">LOG-00{{ log.id }}</td>
+                    <td style="font-family: var(--font-mono); font-size: 0.75rem;">{{ log.created_at }}</td>
+                    <td style="font-weight: 600;">{{ log.username or 'SYSTEM / ANONYMOUS' }}</td>
+                    <td>
+                        {% if log.role == 'ADMIN' %}
+                        <span class="badge badge-critical">ADMIN</span>
+                        {% elif log.role == 'INVESTIGATOR' %}
+                        <span class="badge badge-investigating">INVESTIGATOR</span>
+                        {% elif log.role == 'ANALYST' %}
+                        <span class="badge badge-low">ANALYST</span>
+                        {% else %}
+                        <span class="badge badge-closed">NONE</span>
+                        {% endif %}
+                    </td>
+                    <td style="font-family: var(--font-mono); font-size: 0.75rem;">{{ log.ip_address }}</td>
+                    <td style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--accent-cyan);">{{ log.action }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

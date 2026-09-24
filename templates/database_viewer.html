@@ -1,0 +1,227 @@
+{% extends 'base.html' %}
+
+{% block title %}Database Inspector — CYBERTRACE{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Classroom Database Record Inspector</h1>
+        <p class="page-subtitle">Administrative live SQLite schema &amp; table viewer for educational inspection</p>
+    </div>
+    <div>
+        <span class="badge badge-critical">CLEARANCE: ADMIN ONLY</span>
+    </div>
+</div>
+
+<!-- Educational Banner -->
+<div class="demo-banner">
+    <div class="demo-banner-title">🎓 DEMONSTRATION DATABASE VIEWER — LOCAL EDUCATIONAL ENVIRONMENT</div>
+    <div class="demo-banner-desc">
+        This view is provided specifically for teacher and evaluator inspection of live SQLite database records. Passwords are never displayed in plaintext and are masked as <code>[HASHED-PBKDF2/SCRYPT]</code>.
+    </div>
+</div>
+
+<!-- Tabs for Table Navigation -->
+<div class="tab-wrapper card" style="padding: 16px;">
+    <div style="display: flex; gap: 8px; flex-wrap: wrap; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 20px;">
+        <button type="button" class="btn btn-secondary tab-btn active" data-tab="users">👤 Users ({{ users|length }})</button>
+        <button type="button" class="btn btn-secondary tab-btn" data-tab="cases">📁 Cases ({{ cases|length }})</button>
+        <button type="button" class="btn btn-secondary tab-btn" data-tab="evidence">🔬 Evidence ({{ evidence|length }})</button>
+        <button type="button" class="btn btn-secondary tab-btn" data-tab="notes">📝 Notes ({{ notes|length }})</button>
+        <button type="button" class="btn btn-secondary tab-btn" data-tab="audits">📜 Audit Trail ({{ audit_logs|length }})</button>
+        <button type="button" class="btn btn-secondary tab-btn" data-tab="sqli">💉 SQLi Demo Sandbox ({{ demo_sqli|length }})</button>
+    </div>
+
+    <!-- Tab 1: Users -->
+    <div id="tab-users" class="tab-content">
+        <h3 style="margin-bottom: 12px; font-size: 1rem;">Table: <code>users</code></h3>
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>id</th>
+                        <th>username</th>
+                        <th>password_hash</th>
+                        <th>role</th>
+                        <th>full_name</th>
+                        <th>email</th>
+                        <th>department</th>
+                        <th>created_at</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for u in users %}
+                    <tr>
+                        <td style="font-family: var(--font-mono);">{{ u.id }}</td>
+                        <td style="font-family: var(--font-mono); font-weight: 600; color: var(--accent-cyan);">{{ u.username }}</td>
+                        <td style="font-family: var(--font-mono); color: var(--accent-emerald);">{{ u.password_hash }}</td>
+                        <td><span class="badge {% if u.role == 'ADMIN' %}badge-critical{% elif u.role == 'INVESTIGATOR' %}badge-investigating{% else %}badge-low{% endif %}">{{ u.role }}</span></td>
+                        <td>{{ u.full_name }}</td>
+                        <td style="font-family: var(--font-mono); font-size: 0.8rem;">{{ u.email }}</td>
+                        <td>{{ u.department }}</td>
+                        <td style="font-family: var(--font-mono); font-size: 0.75rem;">{{ u.created_at }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Tab 2: Cases -->
+    <div id="tab-cases" class="tab-content" style="display: none;">
+        <h3 style="margin-bottom: 12px; font-size: 1rem;">Table: <code>cases</code></h3>
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>id</th>
+                        <th>case_number</th>
+                        <th>title</th>
+                        <th>severity</th>
+                        <th>status</th>
+                        <th>assigned_to</th>
+                        <th>created_at</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for c in cases %}
+                    <tr>
+                        <td style="font-family: var(--font-mono);">{{ c.id }}</td>
+                        <td style="font-family: var(--font-mono); font-weight: 600; color: var(--accent-cyan);">{{ c.case_number }}</td>
+                        <td>{{ c.title }}</td>
+                        <td><span class="badge badge-high">{{ c.severity }}</span></td>
+                        <td><span class="badge badge-open">{{ c.status }}</span></td>
+                        <td style="font-family: var(--font-mono);">UID-00{{ c.assigned_to }}</td>
+                        <td style="font-family: var(--font-mono); font-size: 0.75rem;">{{ c.created_at }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Tab 3: Evidence -->
+    <div id="tab-evidence" class="tab-content" style="display: none;">
+        <h3 style="margin-bottom: 12px; font-size: 1rem;">Table: <code>evidence</code></h3>
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>id</th>
+                        <th>case_id</th>
+                        <th>evidence_code</th>
+                        <th>description</th>
+                        <th>evidence_type</th>
+                        <th>status</th>
+                        <th>collected_by</th>
+                        <th>created_at</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for e in evidence %}
+                    <tr>
+                        <td style="font-family: var(--font-mono);">{{ e.id }}</td>
+                        <td style="font-family: var(--font-mono);">{{ e.case_id }}</td>
+                        <td style="font-family: var(--font-mono); font-weight: 600; color: var(--accent-cyan);">{{ e.evidence_code }}</td>
+                        <td>{{ e.description }}</td>
+                        <td><span class="badge badge-medium">{{ e.evidence_type }}</span></td>
+                        <td><span class="badge badge-open">{{ e.status }}</span></td>
+                        <td>{{ e.collected_by }}</td>
+                        <td style="font-family: var(--font-mono); font-size: 0.75rem;">{{ e.created_at }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Tab 4: Notes -->
+    <div id="tab-notes" class="tab-content" style="display: none;">
+        <h3 style="margin-bottom: 12px; font-size: 1rem;">Table: <code>investigation_notes</code></h3>
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>id</th>
+                        <th>case_id</th>
+                        <th>user_id</th>
+                        <th>note</th>
+                        <th>created_at</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for n in notes %}
+                    <tr>
+                        <td style="font-family: var(--font-mono);">{{ n.id }}</td>
+                        <td style="font-family: var(--font-mono);">Case #{{ n.case_id }}</td>
+                        <td style="font-family: var(--font-mono);">User #{{ n.user_id }}</td>
+                        <td>{{ n.note }}</td>
+                        <td style="font-family: var(--font-mono); font-size: 0.75rem;">{{ n.created_at }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Tab 5: Audits -->
+    <div id="tab-audits" class="tab-content" style="display: none;">
+        <h3 style="margin-bottom: 12px; font-size: 1rem;">Table: <code>audit_logs</code> (Recent 50 Events)</h3>
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>id</th>
+                        <th>user_id</th>
+                        <th>action</th>
+                        <th>ip_address</th>
+                        <th>created_at</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for a in audit_logs %}
+                    <tr>
+                        <td style="font-family: var(--font-mono);">{{ a.id }}</td>
+                        <td style="font-family: var(--font-mono);">{{ a.user_id or 'SYSTEM' }}</td>
+                        <td style="font-family: var(--font-mono); color: var(--accent-cyan);">{{ a.action }}</td>
+                        <td style="font-family: var(--font-mono);">{{ a.ip_address }}</td>
+                        <td style="font-family: var(--font-mono); font-size: 0.75rem;">{{ a.created_at }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Tab 6: Demo SQLi -->
+    <div id="tab-sqli" class="tab-content" style="display: none;">
+        <h3 style="margin-bottom: 12px; font-size: 1rem;">Table: <code>demo_sqli_records</code> (Isolated Demo Sandbox)</h3>
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>id</th>
+                        <th>record_id</th>
+                        <th>title</th>
+                        <th>classification</th>
+                        <th>target_ip</th>
+                        <th>notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in demo_sqli %}
+                    <tr>
+                        <td style="font-family: var(--font-mono);">{{ s.id }}</td>
+                        <td style="font-family: var(--font-mono); font-weight: 600; color: #f87171;">{{ s.record_id }}</td>
+                        <td>{{ s.title }}</td>
+                        <td><span class="badge badge-critical">{{ s.classification }}</span></td>
+                        <td style="font-family: var(--font-mono);">{{ s.target_ip }}</td>
+                        <td>{{ s.notes }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

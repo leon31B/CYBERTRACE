@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block title %}403 Forbidden — Access Denied — CYBERTRACE{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 40px auto; text-align: center;">
+    <div class="card" style="border-top: 4px solid var(--accent-rose); padding: 40px 24px;">
+        <div style="font-size: 3.5rem; margin-bottom: 12px;">🚫</div>
+        <h1 style="font-size: 1.8rem; margin-bottom: 8px; color: #fff;">403 — Clearance Level Insufficient</h1>
+        <p style="font-size: 0.95rem; color: var(--text-muted); margin-bottom: 20px; line-height: 1.6;">
+            Access to this administrative resource is strictly restricted by Server-Side Role-Based Access Control (RBAC). Your active role (<strong>{{ current_user.role if current_user else 'UNAUTHENTICATED' }}</strong>) does not possess the requisite clearance.
+        </p>
+
+        <div style="background: rgba(239, 68, 68, 0.1); border: 1px dashed rgba(239, 68, 68, 0.4); border-radius: 6px; padding: 12px; margin-bottom: 24px; font-family: var(--font-mono); font-size: 0.8rem; color: #fca5a5;">
+            SECURITY POLICY ENFORCED: Unauthorized access event recorded in immutable audit log.
+        </div>
+
+        <div style="display: flex; gap: 12px; justify-content: center;">
+            <a href="{{ url_for('dashboard') }}" class="btn btn-primary">Return to SOC Dashboard</a>
+            <a href="{{ url_for('access_control_lab') }}" class="btn btn-secondary">Review RBAC Lab</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
